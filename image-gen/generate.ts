@@ -1,27 +1,32 @@
 /**
  * Solv Image Generator
- * Generates images via Google Gemini for blog posts, product screenshots, and marketing assets.
+ * Generates on-brand images via Google Gemini for blog posts, social cards,
+ * hero banners, and email headers. Solv's visual style is applied automatically.
  *
  * Usage:
  *   npx ts-node generate.ts "your prompt" [options]
  *
  * Options:
- *   --ref <path>    Path to a reference image (used as visual style guide)
- *   --size <ratio>  Aspect ratio: 1:1 | 16:9 | 9:16 | 4:3 | 3:4  (default: 16:9)
- *   --model <id>    Override the model  (default: gemini-3-pro-image-preview)
- *   --out <dir>     Output directory    (default: ./output)
+ *   --type <type>   Content type: blog | social | hero | email  (adds layout guidance)
+ *   --ref <path>    Reference image path (used as additional style context)
+ *   --size <ratio>  1:1 | 16:9 | 9:16 | 4:3 | 3:4  (default: 16:9)
+ *   --model <id>    Model override  (default: gemini-3-pro-image-preview)
+ *   --out <dir>     Output directory  (default: ./output)
+ *   --no-brand      Skip the Solv brand style layer (raw prompt only)
  *
  * Examples:
- *   npx ts-node generate.ts "Hero image for an urgent care landing page, clean, professional, medical blue tones"
- *   npx ts-node generate.ts "Blog post header: AI in healthcare operations" --size 16:9
- *   npx ts-node generate.ts "Match this style — show a busy front desk at a clinic" --ref ./brand-screenshot.png
- *   npx ts-node generate.ts "Square social card" --size 1:1 --model gemini-3.1-flash-image-preview
+ *   npx ts-node generate.ts "The future of urgent care scheduling" --type blog
+ *   npx ts-node generate.ts "How AI reduces no-shows" --type social --size 1:1
+ *   npx ts-node generate.ts "Homepage hero — show the Solv dashboard" --type hero
+ *   npx ts-node generate.ts "Q1 operator newsletter header" --type email
+ *   npx ts-node generate.ts "Abstract purple gradient texture" --no-brand
  */
 
 import { GoogleGenAI, Part } from "@google/genai";
 import * as fs from "fs";
 import * as path from "path";
 import * as dotenv from "dotenv";
+import { BRAND_STYLE, CONTENT_TYPE_STYLES } from "./brand";
 
 dotenv.config();
 
@@ -30,7 +35,10 @@ dotenv.config();
 const DEFAULT_MODEL        = "gemini-3-pro-image-preview";
 const DEFAULT_ASPECT_RATIO = "16:9";
 const VALID_ASPECT_RATIOS  = ["1:1", "16:9", "9:16", "4:3", "3:4"] as const;
-type AspectRatio = typeof VALID_ASPECT_RATIOS[number];
+const VALID_TYPES          = ["blog", "social", "hero", "email"] as const;
+
+type AspectRatio  = typeof VALID_ASPECT_RATIOS[number];
+type ContentType  = typeof VALID_TYPES[number];
 
 const MIME_TYPES: Record<string, string> = {
   ".jpg":  "image/jpeg",
@@ -40,35 +48,51 @@ const MIME_TYPES: Record<string, string> = {
   ".gif":  "image/gif",
 };
 
+// Default sizes per content type when --size isn't specified
+const DEFAULT_SIZES: Partial<Record<ContentType, AspectRatio>> = {
+  blog:   "16:9",
+  social: "1:1",
+  hero:   "16:9",
+  email:  "16:9",
+};
+
 // ── Arg parser ─────────────────────────────────────────────────────────────────
 
 interface Args {
-  prompt:  string;
-  refPath: string | undefined;
-  size:    string;
-  model:   string;
-  outDir:  string;
+  prompt:   string;
+  type:     ContentType | undefined;
+  refPath:  string | undefined;
+  size:     string;
+  model:    string;
+  outDir:   string;
+  noBrand:  boolean;
 }
 
 function parseArgs(argv: string[]): Args {
-  const flags: Record<string, string> = {};
+  const flags: Record<string, string | boolean> = {};
   const positional: string[] = [];
 
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i].startsWith("--") && i + 1 < argv.length) {
+    if (argv[i] === "--no-brand") {
+      flags["no-brand"] = true;
+    } else if (argv[i].startsWith("--") && i + 1 < argv.length) {
       flags[argv[i].slice(2)] = argv[i + 1];
-      i++; // skip the value
+      i++;
     } else {
       positional.push(argv[i]);
     }
   }
 
+  const type = flags["type"] as ContentType | undefined;
+
   return {
     prompt:  positional.join(" "),
-    refPath: flags["ref"],
-    size:    flags["size"]  ?? DEFAULT_ASPECT_RATIO,
-    model:   flags["model"] ?? DEFAULT_MODEL,
-    outDir:  flags["out"]   ?? "./output",
+    type:    VALID_TYPES.includes(type as ContentType) ? type : undefined,
+    refPath: flags["ref"] as string | undefined,
+    size:    (flags["size"] as string) ?? (type && DEFAULT_SIZES[type as ContentType]) ?? DEFAULT_ASPECT_RATIO,
+    model:   (flags["model"] as string) ?? DEFAULT_MODEL,
+    outDir:  (flags["out"] as string) ?? "./output",
+    noBrand: flags["no-brand"] === true,
   };
 }
 
@@ -82,24 +106,46 @@ function slugify(text: string, maxLen = 45): string {
     .slice(0, maxLen);
 }
 
+function buildPrompt(args: Args): string {
+  const parts: string[] = [];
+
+  // 1. User's creative direction
+  parts.push(`SUBJECT / CONCEPT:\n${args.prompt}`);
+
+  // 2. Brand style (unless --no-brand)
+  if (!args.noBrand) {
+    parts.push(`BRAND STYLE GUIDE (apply to all outputs):\n${BRAND_STYLE}`);
+  }
+
+  // 3. Content-type layout guidance
+  if (args.type && CONTENT_TYPE_STYLES[args.type]) {
+    parts.push(`CONTENT TYPE — ${args.type.toUpperCase()}:\n${CONTENT_TYPE_STYLES[args.type]}`);
+  }
+
+  return parts.join("\n\n");
+}
+
 function printUsage(): void {
   console.log(`
-  Solv Image Generator
+  Solv Image Generator — Solv brand style applied automatically
 
   Usage:
     npx ts-node generate.ts "prompt" [options]
 
   Options:
-    --ref <path>    Reference image path (used as style guide)
-    --size <ratio>  ${VALID_ASPECT_RATIOS.join(" | ")}  (default: ${DEFAULT_ASPECT_RATIO})
+    --type <type>   ${VALID_TYPES.join(" | ")}  (sets layout context + default size)
+    --ref <path>    Reference image for additional style context
+    --size <ratio>  ${VALID_ASPECT_RATIOS.join(" | ")}
     --model <id>    Model ID  (default: ${DEFAULT_MODEL})
     --out <dir>     Output directory  (default: ./output)
+    --no-brand      Skip Solv brand style (raw prompt only)
 
   Examples:
-    npx ts-node generate.ts "Hero banner for an urgent care website, clean and professional"
-    npx ts-node generate.ts "Blog header: the future of urgent care operations" --size 16:9
-    npx ts-node generate.ts "Match this visual style — new scene: a patient checking in" --ref ./ref.png
-    npx ts-node generate.ts "Square social card, bold typography" --size 1:1
+    npx ts-node generate.ts "The future of urgent care scheduling" --type blog
+    npx ts-node generate.ts "How AI reduces no-shows by 40 percent" --type social --size 1:1
+    npx ts-node generate.ts "Homepage hero showing the Solv dashboard in action" --type hero
+    npx ts-node generate.ts "Q1 operator newsletter header" --type email
+    npx ts-node generate.ts "Abstract purple gradient texture" --no-brand
 `);
 }
 
@@ -108,66 +154,56 @@ function printUsage(): void {
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
 
-  // Validate prompt
   if (!args.prompt) {
     printUsage();
     process.exit(1);
   }
 
-  // Validate API key
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     console.error(`
   Error: GEMINI_API_KEY is not set.
-
-  1. Copy .env.example to .env
-  2. Add your API key: GEMINI_API_KEY=your_key_here
-  3. Get a key at: https://aistudio.google.com/app/apikey
+  Add it to image-gen/.env — see .env.example for the format.
+  Get a key at: https://aistudio.google.com/app/apikey
 `);
     process.exit(1);
   }
 
-  // Validate aspect ratio
   if (!VALID_ASPECT_RATIOS.includes(args.size as AspectRatio)) {
-    console.error(`  Error: Invalid aspect ratio "${args.size}"\n  Valid options: ${VALID_ASPECT_RATIOS.join(", ")}`);
+    console.error(`  Error: Invalid size "${args.size}". Valid: ${VALID_ASPECT_RATIOS.join(", ")}`);
     process.exit(1);
   }
 
-  // Build request parts
+  // Build the full prompt
+  const fullPrompt = buildPrompt(args);
   const parts: Part[] = [];
 
+  // Reference image (style context)
   if (args.refPath) {
     if (!fs.existsSync(args.refPath)) {
       console.error(`  Error: Reference image not found: ${args.refPath}`);
       process.exit(1);
     }
-
     const ext      = path.extname(args.refPath).toLowerCase();
     const mimeType = MIME_TYPES[ext];
-
     if (!mimeType) {
-      console.error(`  Error: Unsupported image format "${ext}"\n  Supported: ${Object.keys(MIME_TYPES).join(", ")}`);
+      console.error(`  Error: Unsupported image format "${ext}". Supported: ${Object.keys(MIME_TYPES).join(", ")}`);
       process.exit(1);
     }
-
     const imageData = fs.readFileSync(args.refPath).toString("base64");
-
-    // Add reference image first, then the instruction
     parts.push({ inlineData: { mimeType, data: imageData } });
-    parts.push({
-      text: `Use the provided image strictly as a visual style reference — match its color palette, `
-          + `lighting, composition style, and overall aesthetic. Do not reproduce any text, logos, or `
-          + `UI elements from the reference. Generate a new image described as: ${args.prompt}`,
-    });
+    parts.push({ text: `Use the provided image as additional visual context and style reference.\n\n${fullPrompt}` });
   } else {
-    parts.push({ text: args.prompt });
+    parts.push({ text: fullPrompt });
   }
 
-  // Log what we're doing
+  // Log summary
   console.log(`
   Model   ${args.model}
+  Type    ${args.type ?? "none"}
   Size    ${args.size}
-  Prompt  ${args.prompt.slice(0, 90)}${args.prompt.length > 90 ? "…" : ""}${args.refPath ? `\n  Ref     ${args.refPath}` : ""}
+  Brand   ${args.noBrand ? "off" : "on"}
+  Prompt  ${args.prompt.slice(0, 80)}${args.prompt.length > 80 ? "…" : ""}${args.refPath ? `\n  Ref     ${args.refPath}` : ""}
 
   Generating…`);
 
@@ -187,17 +223,9 @@ async function main(): Promise<void> {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error(`\n  Generation failed: ${message}\n`);
-
-    // Surface common issues
-    if (message.includes("API_KEY")) {
-      console.error("  → Check that your GEMINI_API_KEY is correct and has not expired.");
-    } else if (message.includes("404") || message.includes("not found")) {
-      console.error(`  → Model "${args.model}" may not be available yet in your region or account tier.`);
-      console.error(`  → Try: --model gemini-2.5-flash-image`);
-    } else if (message.includes("SAFETY") || message.includes("blocked")) {
-      console.error("  → The prompt was blocked by safety filters. Try rephrasing.");
-    }
-
+    if (message.includes("API_KEY"))                               console.error("  → Check that your GEMINI_API_KEY is valid.");
+    else if (message.includes("404") || message.includes("not found")) console.error(`  → Model "${args.model}" may not be available yet.\n  → Try: --model gemini-2.5-flash-image`);
+    else if (message.includes("SAFETY") || message.includes("blocked")) console.error("  → Prompt was blocked by safety filters. Try rephrasing.");
     process.exit(1);
   }
 
@@ -210,14 +238,12 @@ async function main(): Promise<void> {
       const inline = (part as { inlineData?: { data: string; mimeType: string } }).inlineData;
       if (inline?.data) {
         const imageBuffer = Buffer.from(inline.data, "base64");
-
-        // Ensure output directory exists
         fs.mkdirSync(args.outDir, { recursive: true });
 
-        // Build filename: timestamp + slugified prompt
         const ts       = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
         const slug     = slugify(args.prompt);
-        const filename = `${ts}--${slug}.png`;
+        const label    = args.type ? `${args.type}--` : "";
+        const filename = `${ts}--${label}${slug}.png`;
         const outPath  = path.join(args.outDir, filename);
 
         fs.writeFileSync(outPath, imageBuffer);
@@ -230,15 +256,11 @@ async function main(): Promise<void> {
   }
 
   if (!saved) {
-    // No image — check if model returned a text refusal instead
     const textPart = candidates[0]?.content?.parts?.find(
       (p: unknown) => (p as { text?: string }).text
     ) as { text?: string } | undefined;
-
-    console.error("\n  No image was returned in the response.");
-    if (textPart?.text) {
-      console.error(`  Model responded with text: ${textPart.text}`);
-    }
+    console.error("\n  No image returned in response.");
+    if (textPart?.text) console.error(`  Model said: ${textPart.text}`);
     process.exit(1);
   }
 }
