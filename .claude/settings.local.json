@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(open:*)",
+      "Bash(node:*)",
+      "Bash(git init:*)",
+      "Bash(brew install:*)",
+      "Bash(/opt/homebrew/bin/brew install:*)",
+      "Bash(/opt/homebrew/bin/git:*)",
+      "Bash(gh api:*)",
+      "Bash(/opt/homebrew/bin/gh:*)",
+      "Bash(vercel:*)",
+      "Bash(/opt/homebrew/bin/vercel:*)",
+      "Bash(cursor:*)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl:*)"
+    ]
+  }
+}

@@ -4,421 +4,649 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Solv — Built for Multi-Site Urgent Care Operators</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    /* ── Reset ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ── Tokens ───────────────────────────────────────────── */
+    :root {
+      --bg:        #060b18;
+      --bg-2:      #0a1020;
+      --bg-card:   #0d1526;
+      --bg-hover:  #111d38;
+      --border:    rgba(96, 165, 250, 0.1);
+      --border-s:  rgba(96, 165, 250, 0.22);
+      --blue:      #2563eb;
+      --blue-l:    #60a5fa;
+      --blue-glow: rgba(37, 99, 235, 0.3);
+      --amber:     #f59e0b;
+      --amber-l:   #fcd34d;
+      --text:      #f1f5f9;
+      --text-2:    #94a3b8;
+      --text-3:    #475569;
+      --fd:        'Syne', sans-serif;
+      --fb:        'DM Sans', sans-serif;
+      --fm:        'JetBrains Mono', monospace;
+      --r:         12px;
+      --r-lg:      18px;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #1a1a2e;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--fb);
+      font-size: 16px;
       line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* NAV */
+    /* ── Ticker ───────────────────────────────────────────── */
+    .ticker-wrap {
+      background: var(--blue);
+      overflow: hidden;
+      padding: 9px 0;
+      position: relative;
+      z-index: 200;
+    }
+    .ticker {
+      display: flex;
+      white-space: nowrap;
+      animation: ticker 35s linear infinite;
+      width: max-content;
+    }
+    .ticker span {
+      font-family: var(--fm);
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      color: rgba(255,255,255,0.9);
+      padding: 0 36px;
+    }
+    .ticker span::before { content: '·'; margin-right: 36px; opacity: 0.55; }
+    @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* ── Nav ──────────────────────────────────────────────── */
     nav {
-      position: fixed;
+      position: sticky;
       top: 0;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid #e8eaf0;
-      padding: 16px 48px;
+      z-index: 100;
+      height: 62px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      z-index: 100;
+      padding: 0 48px;
+      background: rgba(6, 11, 24, 0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
     }
-
-    nav .logo {
-      font-size: 22px;
+    .nav-logo {
+      font-family: var(--fd);
+      font-size: 21px;
       font-weight: 800;
-      color: #0066ff;
+      color: var(--text);
       letter-spacing: -0.5px;
     }
-
-    nav a {
-      font-size: 14px;
+    .nav-logo em { font-style: normal; color: var(--blue-l); }
+    .nav-links { display: flex; align-items: center; gap: 4px; }
+    .nav-links a {
+      font-size: 13.5px;
       font-weight: 500;
-      color: #555;
+      color: var(--text-2);
       text-decoration: none;
-      margin-left: 32px;
+      padding: 6px 13px;
+      border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
     }
+    .nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .nav-cta {
+      background: var(--blue) !important;
+      color: #fff !important;
+      font-weight: 600 !important;
+      margin-left: 8px;
+      box-shadow: 0 2px 10px var(--blue-glow);
+    }
+    .nav-cta:hover { background: #1d4ed8 !important; }
 
-    nav a:hover { color: #0066ff; }
+    /* ── Shared buttons ───────────────────────────────────── */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--blue);
+      color: #fff;
+      font-family: var(--fb);
+      font-size: 15px;
+      font-weight: 600;
+      padding: 13px 26px;
+      border-radius: var(--r);
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 16px var(--blue-glow);
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 6px 22px var(--blue-glow); }
 
-    /* HERO */
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      color: var(--text-2);
+      font-family: var(--fb);
+      font-size: 15px;
+      font-weight: 500;
+      padding: 13px 20px;
+      border-radius: var(--r);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--border-s); background: rgba(255,255,255,0.03); }
+
+    /* ── Hero ─────────────────────────────────────────────── */
     .hero {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #eef3ff 0%, #f8f4ff 60%, #fff 100%);
+      position: relative;
+      min-height: calc(100vh - 62px);
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 120px 24px 80px;
+      padding: 100px 24px 80px;
+      overflow: hidden;
     }
 
-    .hero-inner {
-      max-width: 760px;
+    /* dot grid */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(96,165,250,0.13) 1px, transparent 1px);
+      background-size: 30px 30px;
+      pointer-events: none;
     }
+
+    /* gradient blobs */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      animation: blob-float 14s ease-in-out infinite alternate;
+    }
+    .blob-1 { width: 640px; height: 640px; background: radial-gradient(circle, rgba(29,78,216,0.45), transparent 70%); top: -220px; left: -120px; }
+    .blob-2 { width: 420px; height: 420px; background: radial-gradient(circle, rgba(8,145,178,0.35), transparent 70%); bottom: -80px; right: -60px; animation-delay: -5s; }
+    .blob-3 { width: 320px; height: 320px; background: radial-gradient(circle, rgba(124,58,237,0.2), transparent 70%); top: 45%; left: 58%; opacity: 0.6; animation-delay: -9s; }
+    @keyframes blob-float { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(28px, 18px) scale(1.06); } }
+
+    .hero-inner { position: relative; max-width: 800px; }
 
     .hero-badge {
-      display: inline-block;
-      background: #e8efff;
-      color: #0055dd;
-      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(37,99,235,0.12);
+      border: 1px solid rgba(96,165,250,0.25);
+      color: var(--blue-l);
+      font-family: var(--fm);
+      font-size: 11px;
       font-weight: 600;
-      letter-spacing: 0.5px;
+      letter-spacing: 1.2px;
       text-transform: uppercase;
       padding: 6px 16px;
       border-radius: 999px;
-      margin-bottom: 28px;
+      margin-bottom: 32px;
     }
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--blue-l);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.45; transform:scale(0.75); } }
 
     .hero h1 {
-      font-size: clamp(36px, 6vw, 60px);
+      font-family: var(--fd);
+      font-size: clamp(44px, 7.5vw, 76px);
       font-weight: 800;
-      line-height: 1.15;
-      letter-spacing: -1.5px;
-      color: #0d0d1a;
-      margin-bottom: 24px;
+      line-height: 1.04;
+      letter-spacing: -3px;
+      color: var(--text);
+      margin-bottom: 26px;
     }
+    .hero h1 em { font-style: normal; color: var(--blue-l); }
 
-    .hero h1 span {
-      color: #0066ff;
-    }
-
-    .hero p {
-      font-size: 19px;
-      color: #555;
-      max-width: 580px;
-      margin: 0 auto 40px;
-    }
-
-    .btn-primary {
-      display: inline-block;
-      background: #0066ff;
-      color: #fff;
-      font-size: 16px;
-      font-weight: 600;
-      padding: 16px 36px;
-      border-radius: 10px;
-      text-decoration: none;
-      transition: background 0.2s, transform 0.15s;
-    }
-
-    .btn-primary:hover {
-      background: #0050cc;
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      display: inline-block;
-      background: transparent;
-      color: #0066ff;
-      font-size: 16px;
-      font-weight: 600;
-      padding: 16px 28px;
-      text-decoration: none;
-      margin-left: 8px;
-    }
-
-    .btn-secondary:hover { text-decoration: underline; }
-
-    .hero-stats {
-      display: flex;
-      justify-content: center;
-      gap: 48px;
-      margin-top: 72px;
-      flex-wrap: wrap;
-    }
-
-    .stat {
-      text-align: center;
-    }
-
-    .stat-number {
-      font-size: 32px;
-      font-weight: 800;
-      color: #0066ff;
-      letter-spacing: -1px;
-    }
-
-    .stat-label {
-      font-size: 13px;
-      color: #777;
-      margin-top: 4px;
-    }
-
-    /* WHAT IT DOES */
-    .section {
-      padding: 100px 24px;
-    }
-
-    .section-inner {
-      max-width: 1080px;
-      margin: 0 auto;
-    }
-
-    .section-label {
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: #0066ff;
-      margin-bottom: 14px;
-    }
-
-    .section h2 {
-      font-size: clamp(28px, 4vw, 42px);
-      font-weight: 800;
-      letter-spacing: -1px;
-      color: #0d0d1a;
-      margin-bottom: 20px;
-      max-width: 640px;
-    }
-
-    .section-intro {
+    .hero-sub {
       font-size: 18px;
-      color: #666;
-      max-width: 560px;
-      margin-bottom: 60px;
+      color: var(--text-2);
+      max-width: 580px;
+      margin: 0 auto 44px;
+      line-height: 1.7;
     }
 
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 28px;
-    }
-
-    .feature-card {
-      background: #fff;
-      border: 1px solid #e8eaf0;
-      border-radius: 16px;
-      padding: 32px;
-      transition: box-shadow 0.2s, transform 0.2s;
-    }
-
-    .feature-card:hover {
-      box-shadow: 0 8px 32px rgba(0, 102, 255, 0.1);
-      transform: translateY(-3px);
-    }
-
-    .feature-icon {
-      width: 48px;
-      height: 48px;
-      background: #eef3ff;
-      border-radius: 12px;
+    .hero-actions {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
-      margin-bottom: 20px;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 72px;
     }
 
-    .feature-card h3 {
-      font-size: 18px;
-      font-weight: 700;
-      color: #0d0d1a;
-      margin-bottom: 10px;
-    }
-
-    .feature-card p {
-      font-size: 15px;
-      color: #666;
-      line-height: 1.65;
-    }
-
-    /* WHY IT MATTERS */
-    .why-section {
-      background: #0d0d1a;
-      padding: 100px 24px;
-    }
-
-    .why-inner {
-      max-width: 1080px;
+    /* Stats row */
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      gap: 1px;
+      max-width: 620px;
       margin: 0 auto;
     }
-
-    .why-section .section-label {
-      color: #6699ff;
-    }
-
-    .why-section h2 {
-      font-size: clamp(28px, 4vw, 42px);
-      font-weight: 800;
-      letter-spacing: -1px;
-      color: #fff;
-      margin-bottom: 16px;
-      max-width: 640px;
-    }
-
-    .why-section .section-intro {
-      color: #aaa;
-    }
-
-    .benefits-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 24px;
-      margin-top: 56px;
-    }
-
-    .benefit {
-      border-left: 3px solid #0066ff;
-      padding: 24px 28px;
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: 0 12px 12px 0;
-    }
-
-    .benefit h3 {
-      font-size: 17px;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 10px;
-    }
-
-    .benefit p {
-      font-size: 15px;
-      color: #aaa;
-      line-height: 1.65;
-    }
-
-    .quote-block {
-      margin-top: 72px;
-      background: rgba(0, 102, 255, 0.12);
-      border: 1px solid rgba(0, 102, 255, 0.3);
-      border-radius: 16px;
-      padding: 40px 48px;
-      max-width: 720px;
-    }
-
-    .quote-text {
-      font-size: 20px;
-      font-style: italic;
-      color: #dde;
-      line-height: 1.7;
-      margin-bottom: 20px;
-    }
-
-    .quote-author {
-      font-size: 14px;
-      font-weight: 600;
-      color: #6699ff;
-    }
-
-    /* CTA */
-    .cta-section {
-      background: linear-gradient(135deg, #0055dd 0%, #0033aa 100%);
-      padding: 100px 24px;
+    .hero-stat {
+      background: var(--bg-card);
+      padding: 26px 20px;
       text-align: center;
     }
-
-    .cta-inner {
-      max-width: 640px;
-      margin: 0 auto;
+    .hero-stat-num {
+      font-family: var(--fd);
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 7px;
+    }
+    .hero-stat-num em { font-style: normal; color: var(--blue-l); }
+    .hero-stat-label {
+      font-family: var(--fm);
+      font-size: 10.5px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
     }
 
-    .cta-section h2 {
-      font-size: clamp(28px, 4vw, 44px);
+    /* ── Section shared ───────────────────────────────────── */
+    .section { padding: 96px 24px; }
+    .section-inner { max-width: 1080px; margin: 0 auto; }
+
+    .eyebrow {
+      font-family: var(--fm);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--blue-l);
+      margin-bottom: 14px;
+    }
+    .section-h2 {
+      font-family: var(--fd);
+      font-size: clamp(30px, 4vw, 46px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      color: var(--text);
+      line-height: 1.1;
+      margin-bottom: 18px;
+      max-width: 660px;
+    }
+    .section-lead {
+      font-size: 17.5px;
+      color: var(--text-2);
+      max-width: 540px;
+      line-height: 1.68;
+      margin-bottom: 60px;
+    }
+
+    /* ── Problems grid ────────────────────────────────────── */
+    .problems-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      gap: 1px;
+    }
+    .problem-card {
+      background: var(--bg-card);
+      padding: 36px 32px;
+      transition: background 0.2s;
+      position: relative;
+    }
+    .problem-card:hover { background: var(--bg-hover); }
+    .problem-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: transparent;
+      transition: background 0.2s;
+    }
+    .problem-card:hover::before { background: linear-gradient(90deg, var(--blue), transparent); }
+
+    .problem-num {
+      font-family: var(--fm);
+      font-size: 11px;
+      color: var(--text-3);
+      margin-bottom: 18px;
+      letter-spacing: 1px;
+    }
+    .problem-quote {
+      font-family: var(--fd);
+      font-size: 15.5px;
+      font-weight: 700;
+      color: var(--amber);
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+    .problem-solution {
+      font-size: 14.5px;
+      color: var(--text-2);
+      line-height: 1.7;
+    }
+    .problem-solution strong { color: var(--text); font-weight: 500; }
+
+    /* ── ROI Calculator ───────────────────────────────────── */
+    .roi-section {
+      padding: 96px 24px;
+      background: var(--bg-2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .roi-inner { max-width: 920px; margin: 0 auto; }
+    .roi-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 52px;
+      align-items: start;
+    }
+    .roi-inputs { display: flex; flex-direction: column; gap: 32px; }
+
+    .slider-group label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .slider-label { font-size: 14px; font-weight: 500; color: var(--text); }
+    .slider-val {
+      font-family: var(--fm);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--blue-l);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: linear-gradient(to right, var(--blue-l) 0%, var(--blue-l) var(--fill,32%), rgba(96,165,250,0.18) var(--fill,32%), rgba(96,165,250,0.18) 100%);
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      background: #fff;
+      border: 3px solid var(--blue-l);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px var(--blue-glow);
+      transition: transform 0.15s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    input[type="range"]::-moz-range-thumb {
+      width: 18px; height: 18px;
+      background: #fff;
+      border: 3px solid var(--blue-l);
+      border-radius: 50%;
+    }
+
+    .roi-outputs { display: flex; flex-direction: column; gap: 14px; }
+    .roi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 22px 26px;
+      transition: border-color 0.2s;
+    }
+    .roi-card:first-child {
+      border-color: rgba(37,99,235,0.4);
+      background: rgba(37,99,235,0.08);
+    }
+    .roi-card-label { font-size: 12.5px; color: var(--text-2); margin-bottom: 7px; }
+    .roi-card-value {
+      font-family: var(--fd);
+      font-size: 34px;
       font-weight: 800;
       letter-spacing: -1px;
-      color: #fff;
-      margin-bottom: 20px;
+      color: var(--text);
+      line-height: 1;
+    }
+    .roi-card:first-child .roi-card-value { color: var(--blue-l); }
+    .roi-card-sub { font-family: var(--fm); font-size: 11px; color: var(--text-3); margin-top: 6px; }
+    .roi-disclaimer {
+      font-size: 12px;
+      color: var(--text-3);
+      font-style: italic;
+      margin-top: 28px;
     }
 
+    /* ── Trust section ────────────────────────────────────── */
+    .trust-section {
+      background: #030610;
+      padding: 96px 24px;
+      border-top: 1px solid var(--border);
+    }
+    .trust-inner { max-width: 1080px; margin: 0 auto; }
+    .trust-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 60px;
+    }
+    .trust-card {
+      border-left: 2px solid rgba(37,99,235,0.5);
+      padding: 22px 26px;
+      background: rgba(255,255,255,0.025);
+      border-radius: 0 var(--r) var(--r) 0;
+      transition: background 0.2s, border-left-color 0.2s;
+    }
+    .trust-card:hover { background: rgba(255,255,255,0.04); border-left-color: var(--blue-l); }
+    .trust-card h3 {
+      font-family: var(--fd);
+      font-size: 15.5px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .trust-card p { font-size: 14px; color: var(--text-2); line-height: 1.68; }
+
+    /* Quote */
+    .quote-wrap {
+      margin-top: 68px;
+      max-width: 720px;
+      background: rgba(37,99,235,0.07);
+      border: 1px solid rgba(37,99,235,0.22);
+      border-radius: var(--r-lg);
+      padding: 44px 50px;
+    }
+    .quote-mark {
+      display: block;
+      font-family: var(--fd);
+      font-size: 72px;
+      color: var(--blue);
+      opacity: 0.5;
+      line-height: 0.6;
+      margin-bottom: 24px;
+    }
+    .quote-text {
+      font-size: 19px;
+      font-style: italic;
+      color: var(--text);
+      line-height: 1.75;
+      margin-bottom: 22px;
+    }
+    .quote-author {
+      font-family: var(--fm);
+      font-size: 11.5px;
+      color: var(--blue-l);
+      letter-spacing: 0.4px;
+    }
+
+    /* ── CTA ──────────────────────────────────────────────── */
+    .cta-section {
+      padding: 120px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(96,165,250,0.07) 1px, transparent 1px);
+      background-size: 30px 30px;
+    }
+    .cta-glow {
+      position: absolute;
+      width: 900px; height: 900px;
+      background: radial-gradient(circle, rgba(37,99,235,0.14), transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .cta-inner { position: relative; max-width: 660px; margin: 0 auto; }
+    .cta-section h2 {
+      font-family: var(--fd);
+      font-size: clamp(30px, 5vw, 50px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      color: var(--text);
+      line-height: 1.1;
+      margin-bottom: 18px;
+    }
     .cta-section p {
       font-size: 18px;
-      color: rgba(255, 255, 255, 0.8);
+      color: var(--text-2);
+      line-height: 1.68;
       margin-bottom: 44px;
     }
-
-    .btn-white {
-      display: inline-block;
-      background: #fff;
-      color: #0044cc;
-      font-size: 16px;
-      font-weight: 700;
-      padding: 16px 40px;
-      border-radius: 10px;
-      text-decoration: none;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-
-    .btn-white:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-    }
-
     .cta-note {
-      margin-top: 20px;
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.6);
+      margin-top: 18px;
+      font-family: var(--fm);
+      font-size: 11.5px;
+      color: var(--text-3);
+      letter-spacing: 0.3px;
     }
 
-    /* FOOTER */
+    /* ── Footer ───────────────────────────────────────────── */
     footer {
-      background: #0d0d1a;
-      padding: 32px 48px;
+      border-top: 1px solid var(--border);
+      padding: 26px 48px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 12px;
     }
-
-    footer .logo {
-      font-size: 18px;
+    .footer-logo {
+      font-family: var(--fd);
+      font-size: 17px;
       font-weight: 800;
-      color: #0066ff;
+      color: var(--text);
     }
+    .footer-logo em { font-style: normal; color: var(--blue-l); }
+    footer p { font-family: var(--fm); font-size: 11.5px; color: var(--text-3); }
 
-    footer p {
-      font-size: 13px;
-      color: #555;
+    /* ── Scroll fade-in ───────────────────────────────────── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 760px) {
+      nav { padding: 0 20px; }
+      .nav-links a:not(.nav-cta) { display: none; }
+      .hero-stats { grid-template-columns: 1fr; }
+      .roi-layout { grid-template-columns: 1fr; gap: 40px; }
+      .quote-wrap { padding: 32px 28px; }
+      footer { padding: 22px 20px; }
     }
   </style>
 </head>
 <body>
 
+  <!-- TICKER -->
+  <div class="ticker-wrap" aria-hidden="true">
+    <div class="ticker">
+      <span>3M+ patient visits per month</span>
+      <span>6,000+ urgent care locations</span>
+      <span>40% average reduction in no-shows</span>
+      <span>Rollout in under 1 day per site</span>
+      <span>Zero IT infrastructure required</span>
+      <span>Trusted by multi-site groups nationwide</span>
+      <span>3M+ patient visits per month</span>
+      <span>6,000+ urgent care locations</span>
+      <span>40% average reduction in no-shows</span>
+      <span>Rollout in under 1 day per site</span>
+      <span>Zero IT infrastructure required</span>
+      <span>Trusted by multi-site groups nationwide</span>
+    </div>
+  </div>
+
   <!-- NAV -->
   <nav>
-    <div class="logo">Solv</div>
-    <div>
+    <div class="nav-logo">Solv<em>.</em></div>
+    <div class="nav-links">
       <a href="#what">What it solves</a>
+      <a href="#roi">ROI Calculator</a>
       <a href="#why">Why operators trust it</a>
-      <a href="#cta">Talk to us</a>
+      <a href="#cta" class="nav-cta">Talk to us</a>
     </div>
   </nav>
 
   <!-- HERO -->
   <section class="hero">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
     <div class="hero-inner">
       <div class="hero-badge">Built for multi-site urgent care operators</div>
-      <h1>Stop firefighting.<br /><span>Start running the business.</span></h1>
-      <p>
+      <h1>Stop firefighting.<br /><em>Start running the business.</em></h1>
+      <p class="hero-sub">
         When your front desk is buried in phone calls, your lobbies are unpredictable,
-        and you're still waiting on end-of-day reports — Solv fixes the root cause.
-        Real-time visibility and AI-driven patient flow, across every site.
+        and you're waiting on end-of-day reports to know what happened — Solv fixes the
+        root cause. AI-driven patient flow, across every site.
       </p>
-      <div>
-        <a href="#cta" class="btn-primary">See it in 20 minutes</a>
-        <a href="#what" class="btn-secondary">Here's how it works &rarr;</a>
+      <div class="hero-actions">
+        <a href="#cta" class="btn-primary">See it in 20 minutes &rarr;</a>
+        <a href="#what" class="btn-ghost">Here's how it works</a>
       </div>
       <div class="hero-stats">
-        <div class="stat">
-          <div class="stat-number">40%</div>
-          <div class="stat-label">Fewer no-shows on average</div>
+        <div class="hero-stat">
+          <div class="hero-stat-num"><em>40</em>%</div>
+          <div class="hero-stat-label">Fewer no-shows on avg</div>
         </div>
-        <div class="stat">
-          <div class="stat-number">6,000+</div>
-          <div class="stat-label">Urgent care locations on Solv</div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">6<em>K</em>+</div>
+          <div class="hero-stat-label">Locations on Solv</div>
         </div>
-        <div class="stat">
-          <div class="stat-number">&lt;1 day</div>
-          <div class="stat-label">Typical rollout time per site</div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">&lt;<em>1</em>d</div>
+          <div class="hero-stat-label">Typical rollout/site</div>
         </div>
       </div>
     </div>
@@ -427,136 +655,136 @@
   <!-- WHAT IT SOLVES -->
   <section class="section" id="what">
     <div class="section-inner">
-      <div class="section-label">What it solves</div>
-      <h2>Six problems operators deal with every single day</h2>
-      <p class="section-intro">
-        Solv isn't a feature list. It's a direct answer to the operational
-        drag that keeps you reactive instead of strategic.
+      <div class="eyebrow fade-up">What it solves</div>
+      <h2 class="section-h2 fade-up">Six problems operators deal with every day</h2>
+      <p class="section-lead fade-up">
+        Solv isn't a feature list. It's a direct answer to the operational drag that keeps you reactive instead of strategic.
       </p>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">&#128222;</div>
-          <h3>"Our phones never stop ringing."</h3>
-          <p>
-            Online booking and AI-powered scheduling let patients book,
-            check in, and get wait time updates without ever calling.
-            Most operators see inbound call volume drop by half within weeks.
-          </p>
+      <div class="problems-grid fade-up">
+        <div class="problem-card">
+          <div class="problem-num">01</div>
+          <div class="problem-quote">"Our phones never stop ringing."</div>
+          <p class="problem-solution">Online booking and AI scheduling let patients book, check in, and get wait time updates without ever calling. <strong>Most operators see inbound call volume drop by half within weeks.</strong></p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#128680;</div>
-          <h3>"No-shows are killing our revenue."</h3>
-          <p>
-            Automated reminders go out at the right intervals — by text,
-            not just email. Patients confirm or reschedule in one tap.
-            That slot goes to someone else, not to waste.
-          </p>
+        <div class="problem-card">
+          <div class="problem-num">02</div>
+          <div class="problem-quote">"No-shows are killing our revenue."</div>
+          <p class="problem-solution">Automated reminders go out at the right intervals — by text, not just email. Patients confirm or reschedule in one tap. <strong>That slot goes to someone else, not to waste.</strong></p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#128444;</div>
-          <h3>"I'm flying blind until end of day."</h3>
-          <p>
-            A single real-time dashboard shows live visit volume, wait times,
-            and patient satisfaction across every site. Know what's happening
-            at Site 3 without calling Site 3.
-          </p>
+        <div class="problem-card">
+          <div class="problem-num">03</div>
+          <div class="problem-quote">"I'm flying blind until end of day."</div>
+          <p class="problem-solution">A real-time dashboard shows live visit volume, wait times, and satisfaction across every site. <strong>Know what's happening at Site 3 without calling Site 3.</strong></p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#9881;</div>
-          <h3>"Every location does things differently."</h3>
-          <p>
-            Solv standardizes patient intake, check-in flows, and messaging
-            across all your sites. New staff learn one workflow — the right one —
-            regardless of which location they're at.
-          </p>
+        <div class="problem-card">
+          <div class="problem-num">04</div>
+          <div class="problem-quote">"Every location does things differently."</div>
+          <p class="problem-solution">Solv standardizes patient intake, check-in flows, and messaging across all your sites. <strong>New staff learn one workflow — the right one, regardless of location.</strong></p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#128683;</div>
-          <h3>"Patients leave when they can't see a wait time."</h3>
-          <p>
-            Live wait times display online and update automatically. Patients
-            who can see the wait show up. Patients who can't see it go to your
-            competitor down the street.
-          </p>
+        <div class="problem-card">
+          <div class="problem-num">05</div>
+          <div class="problem-quote">"Patients leave when they can't see a wait time."</div>
+          <p class="problem-solution">Live wait times display online and update automatically. <strong>Patients who can see the wait show up. Patients who can't go to your competitor.</strong></p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#11088;</div>
-          <h3>"We keep getting negative Google reviews."</h3>
-          <p>
-            Solv automatically prompts satisfied patients to leave reviews right
-            after their visit. You get more 5-stars and early warnings about
-            experience issues before they become public.
-          </p>
+        <div class="problem-card">
+          <div class="problem-num">06</div>
+          <div class="problem-quote">"We keep getting negative Google reviews."</div>
+          <p class="problem-solution">Solv prompts satisfied patients to leave reviews right after their visit. <strong>More 5-stars, and early warnings about experience issues before they go public.</strong></p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- WHY OPERATORS TRUST IT -->
-  <section class="why-section" id="why">
-    <div class="why-inner">
-      <div class="section-label">Why operators trust it</div>
-      <h2>We know you've heard this before. Here's what's different.</h2>
-      <p class="section-intro">
-        Most tools promise to fix operations and end up creating more work for your
-        front desk. Solv was built with that exact skepticism in mind.
-      </p>
-      <div class="benefits-grid">
-        <div class="benefit">
-          <h3>Your staff will actually use it</h3>
-          <p>
-            Solv is designed around how front desk staff actually work — not
-            how software engineers think they work. The check-in flow takes
-            seconds. There's no training manual. New hires pick it up on day one.
-          </p>
+  <!-- ROI CALCULATOR -->
+  <section class="roi-section" id="roi">
+    <div class="roi-inner">
+      <div class="eyebrow fade-up">ROI Calculator</div>
+      <h2 class="section-h2 fade-up">See what Solv is worth to your group</h2>
+      <p class="section-lead fade-up">Adjust the inputs to match your operation. Estimates are conservative and based on aggregate operator data.</p>
+      <div class="roi-layout fade-up">
+        <div class="roi-inputs">
+          <div class="slider-group">
+            <label>
+              <span class="slider-label">Number of locations</span>
+              <span class="slider-val" id="loc-val">8</span>
+            </label>
+            <input type="range" id="locations" min="1" max="50" value="8" />
+          </div>
+          <div class="slider-group">
+            <label>
+              <span class="slider-label">Avg daily visits per location</span>
+              <span class="slider-val" id="visits-val">40</span>
+            </label>
+            <input type="range" id="visits" min="10" max="200" step="5" value="40" />
+          </div>
+          <div class="slider-group">
+            <label>
+              <span class="slider-label">Current no-show rate</span>
+              <span class="slider-val" id="noshow-val">15%</span>
+            </label>
+            <input type="range" id="noshows" min="5" max="30" value="15" />
+          </div>
         </div>
-        <div class="benefit">
-          <h3>No IT department required</h3>
-          <p>
-            There's nothing to install and no EHR integration required to go live.
-            If your staff has a browser, you're ready. Most sites are up and running
-            in under a day.
-          </p>
-        </div>
-        <div class="benefit">
-          <h3>You'll have something to show your CFO in 30 days</h3>
-          <p>
-            Solv tracks visit volume, no-show rates, and patient satisfaction
-            by location — automatically. Stop building spreadsheets. Start
-            walking into board meetings with real numbers.
-          </p>
-        </div>
-        <div class="benefit">
-          <h3>Rollout doesn't blow up your ops</h3>
-          <p>
-            We've done this with hundreds of multi-site groups. You get a
-            dedicated implementation team, a clear timeline, and site managers
-            who feel supported — not surprised.
-          </p>
-        </div>
-        <div class="benefit">
-          <h3>Patients book online and show up</h3>
-          <p>
-            Online bookers cancel less and rate their experience higher than
-            walk-ins. When patients can see your wait time and reserve a spot,
-            they're invested before they even walk in the door.
-          </p>
-        </div>
-        <div class="benefit">
-          <h3>One platform across every site</h3>
-          <p>
-            The same dashboard. The same workflows. The same patient experience —
-            whether you have 5 locations or 25. No more one-off processes that
-            exist because someone at Site 4 improvised three years ago.
-          </p>
+
+        <div class="roi-outputs">
+          <div class="roi-card">
+            <div class="roi-card-label">Annual revenue recovered</div>
+            <div class="roi-card-value" id="out-revenue">—</div>
+            <div class="roi-card-sub">Based on 40% no-show reduction · $150 avg visit revenue</div>
+          </div>
+          <div class="roi-card">
+            <div class="roi-card-label">Inbound calls eliminated per year</div>
+            <div class="roi-card-value" id="out-calls">—</div>
+            <div class="roi-card-sub">Based on ~55% reduction in call volume per site</div>
+          </div>
+          <div class="roi-card">
+            <div class="roi-card-label">Front desk hours saved per year</div>
+            <div class="roi-card-value" id="out-hours">—</div>
+            <div class="roi-card-sub">At 3 min average per call handled</div>
+          </div>
         </div>
       </div>
-      <div class="quote-block">
-        <div class="quote-text">
-          "I used to start every morning putting out fires from the night before.
-          Now I open Solv, see what's happening across all our sites, and actually
-          get ahead of problems before they become patient complaints."
+      <p class="roi-disclaimer fade-up">Estimates are illustrative. Actual results vary by market, payer mix, and current operations.</p>
+    </div>
+  </section>
+
+  <!-- WHY OPERATORS TRUST IT -->
+  <section class="trust-section" id="why">
+    <div class="trust-inner">
+      <div class="eyebrow fade-up">Why operators trust it</div>
+      <h2 class="section-h2 fade-up">We know you've heard this before.<br />Here's what's different.</h2>
+      <p class="section-lead fade-up">
+        Most tools promise to fix operations and end up creating more work for your front desk. Solv was built with that exact skepticism in mind.
+      </p>
+      <div class="trust-grid">
+        <div class="trust-card fade-up">
+          <h3>Your staff will actually use it</h3>
+          <p>Designed around how front desk staff actually work — not how engineers think they work. The check-in flow takes seconds. No training manual. New hires pick it up on day one.</p>
         </div>
+        <div class="trust-card fade-up">
+          <h3>No IT department required</h3>
+          <p>Nothing to install, no EHR integration required to go live. If your staff has a browser, you're ready. Most sites are up and running in under a day.</p>
+        </div>
+        <div class="trust-card fade-up">
+          <h3>You'll have something to show your CFO in 30 days</h3>
+          <p>Solv tracks visit volume, no-show rates, and patient satisfaction by location — automatically. Stop building spreadsheets. Walk into board meetings with real numbers.</p>
+        </div>
+        <div class="trust-card fade-up">
+          <h3>Rollout doesn't blow up your ops</h3>
+          <p>We've done this with hundreds of multi-site groups. You get a dedicated implementation team, a clear timeline, and site managers who feel supported — not surprised.</p>
+        </div>
+        <div class="trust-card fade-up">
+          <h3>Patients who book online show up</h3>
+          <p>Online bookers cancel less and rate their experience higher than walk-ins. When patients can see your wait time and reserve a spot, they're invested before they walk in.</p>
+        </div>
+        <div class="trust-card fade-up">
+          <h3>One platform across every site</h3>
+          <p>Same dashboard. Same workflows. Same patient experience — 5 locations or 25. No more one-off processes that exist because someone at Site 4 improvised three years ago.</p>
+        </div>
+      </div>
+      <div class="quote-wrap fade-up">
+        <span class="quote-mark">"</span>
+        <p class="quote-text">I used to start every morning putting out fires from the night before. Now I open Solv, see what's happening across all our sites, and actually get ahead of problems before they become patient complaints.</p>
         <div class="quote-author">— VP of Operations, 12-site urgent care group</div>
       </div>
     </div>
@@ -564,22 +792,79 @@
 
   <!-- CTA -->
   <section class="cta-section" id="cta">
-    <div class="cta-inner">
-      <h2>You don't have time for a long sales process. Neither do we.</h2>
-      <p>
-        Tell us how many sites you're running and what's breaking down.
-        We'll show you exactly what Solv does about it — in 20 minutes, no fluff.
-      </p>
-      <a href="#" class="btn-white">Book a 20-minute demo</a>
-      <p class="cta-note">No IT prep needed. No commitment. Operators only — we won't waste your time.</p>
+    <div class="cta-glow"></div>
+    <div class="cta-inner fade-up">
+      <h2>You don't have time for a long sales process.<br />Neither do we.</h2>
+      <p>Tell us how many sites you're running and what's breaking down. We'll show you exactly what Solv does about it — in 20 minutes, no fluff.</p>
+      <a href="#" class="btn-primary">Book a 20-minute demo &rarr;</a>
+      <p class="cta-note">No IT prep needed &nbsp;·&nbsp; No commitment &nbsp;·&nbsp; Operators only — we won't waste your time</p>
     </div>
   </section>
 
   <!-- FOOTER -->
   <footer>
-    <div class="logo">Solv</div>
+    <div class="footer-logo">Solv<em>.</em></div>
     <p>&copy; 2026 Solv Health. All rights reserved.</p>
   </footer>
+
+  <script>
+    // ── ROI Calculator ────────────────────────────────────
+    const sliders = {
+      locations: { el: document.getElementById('locations'), out: document.getElementById('loc-val'),    fmt: v => v },
+      visits:    { el: document.getElementById('visits'),    out: document.getElementById('visits-val'), fmt: v => v },
+      noshows:   { el: document.getElementById('noshows'),   out: document.getElementById('noshow-val'), fmt: v => v + '%' },
+    };
+
+    function fmtDollar(n) {
+      if (n >= 1e6)  return '$' + (n / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M';
+      if (n >= 1e5)  return '$' + Math.round(n / 1e3) + 'K';
+      if (n >= 1e3)  return '$' + n.toLocaleString();
+      return '$' + n;
+    }
+    function fmtNum(n) {
+      if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+      return n.toLocaleString();
+    }
+
+    function updateFill(slider) {
+      const pct = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+      slider.style.setProperty('--fill', pct + '%');
+    }
+
+    function calcROI() {
+      const locs   = +sliders.locations.el.value;
+      const visits = +sliders.visits.el.value;
+      const noshow = +sliders.noshows.el.value / 100;
+
+      Object.values(sliders).forEach(s => {
+        s.out.textContent = s.fmt(s.el.value);
+        updateFill(s.el);
+      });
+
+      // Revenue: locs × visits/day × noshow_rate × 40% reduction × $150 × 365
+      const revenue = Math.round(locs * visits * noshow * 0.40 * 150 * 365);
+
+      // Calls: locs × visits/day × 0.35 call ratio × 55% reduction × 365
+      const calls = Math.round(locs * visits * 0.35 * 0.55 * 365);
+
+      // Hours: calls × 3 min / 60
+      const hours = Math.round(calls * 3 / 60);
+
+      document.getElementById('out-revenue').textContent = fmtDollar(revenue);
+      document.getElementById('out-calls').textContent   = fmtNum(calls);
+      document.getElementById('out-hours').textContent   = fmtNum(hours);
+    }
+
+    Object.values(sliders).forEach(s => s.el.addEventListener('input', calcROI));
+    calcROI();
+
+    // ── Scroll fade-in ────────────────────────────────────
+    const observer = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.08, rootMargin: '0px 0px -32px 0px' }
+    );
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+  </script>
 
 </body>
 </html>
