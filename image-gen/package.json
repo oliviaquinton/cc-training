@@ -1,0 +1,17 @@
+{
+  "name": "solv-image-gen",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "generate": "ts-node generate.ts"
+  },
+  "dependencies": {
+    "@google/genai": "^1.0.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
